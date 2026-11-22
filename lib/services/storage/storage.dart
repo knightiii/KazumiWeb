@@ -19,7 +19,8 @@ class SettingKey<T> {
 class SettingsKeys {
   // 与上游同名的键（被拷贝模块引用）
   static const proxyEnable = SettingKey<bool>('proxyEnable', false);
-  static const proxyUrl = SettingKey<String>('proxyUrl', '');
+  static const proxyUrl =
+      SettingKey<String>('proxyUrl', 'http://127.0.0.1:7890');
   static const enableBangumiProxy =
       SettingKey<bool>('enableBangumiProxy', false);
   static const enableGitProxy = SettingKey<bool>('enableGitProxy', false);
