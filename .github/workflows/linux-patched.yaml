@@ -1,0 +1,38 @@
+name: linux-patched
+
+# 只为「代理默认值可用的 headless Linux 包」编一次，不动上游 ci.yml
+on:
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装构建依赖
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            clang cmake ninja-build pkg-config \
+            libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.44.0
+          cache: true
+
+      - run: flutter build linux --release
+
+      - name: 打包
+        run: tar -czf kazumi-web-linux-x64.tar.gz -C build/linux/x64/release/bundle .
+
+      - name: 显示产物
+        run: ls -l kazumi-web-linux-x64.tar.gz && tar -tzf kazumi-web-linux-x64.tar.gz | head -5
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-patched
+          path: kazumi-web-linux-x64.tar.gz
+          if-no-files-found: error
