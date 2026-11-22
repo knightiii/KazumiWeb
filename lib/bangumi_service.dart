@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:kazumi_web/logger.dart';
+import 'package:kazumi_web/services/network/proxy_utils.dart';
 import 'package:kazumi_web/services/storage/storage.dart';
 
 /// Bangumi 公开数据服务：sidecar 直连 bgm.tv（或 Kazumi 镜像后端），
@@ -18,6 +19,18 @@ class BangumiService {
     // 与 network_config 同理：缩短 keep-alive 空闲期，避免复用被
     // 对端半关闭的死连接（表现为间歇性 HandshakeException）。
     _client.idleTimeout = const Duration(seconds: 3);
+    _applyProxy();
+  }
+
+  /// BangumiService 用的是裸 HttpClient，上游只给 dio 客户端加过代理，
+  /// 这里补上：让番剧数据请求也走用户配置的 HTTP 代理。
+  void _applyProxy() {
+    if (!GStorage.getSetting(SettingsKeys.proxyEnable)) return;
+    final parsed = ProxyUtils.parseProxyUrl(
+      GStorage.getSetting(SettingsKeys.proxyUrl),
+    );
+    if (parsed == null) return;
+    _client.findProxy = (_) => 'PROXY ${parsed.$1}:${parsed.$2}';
   }
 
   /// 每次请求时读取设置，web 端切换镜像开关后即时生效，无需重启服务。
